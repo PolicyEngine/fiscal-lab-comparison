@@ -65,4 +65,4 @@ uv run python scripts/run_year.py 2030 --sim hr1428_poverty_line
 uv run python scripts/compare.py                           # writes results/comparison.md and .csv
 ```
 
-Repeat the simulations for 2027 to 2036 (H.R. 1428 from 2030). Each takes about an hour and a peak of about 23 GB of memory. PolicyEngine runs use the latest `policyengine` release (6.20.3, which pins policyengine-us 2.2.2) and its certified Microcosm dataset. Fiscal Lab's figures are fetched from its public dashboard and are not redistributed here.
+Repeat the simulations for 2027 to 2036 (H.R. 1428 from 2030). A 2030 baseline with default outputs took about an hour and peaked at 23 GB of memory; a reform simulation also builds a baseline of its own, so it may need more. `run_year.py --sim <name> --sample 300 --out outputs-smoke` runs the same steps on 300 households, as a quick check of the output path. PolicyEngine runs use the latest `policyengine` release (6.20.3, which pins policyengine-us 2.2.2) and its certified Microcosm dataset. Fiscal Lab's figures are fetched from its public dashboard and are not redistributed here.

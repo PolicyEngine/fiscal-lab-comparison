@@ -18,6 +18,7 @@ import sys
 import time
 
 import numpy as np
+import pandas as pd
 from importlib import metadata
 from pathlib import Path
 
@@ -156,8 +157,46 @@ def repo_provenance() -> dict:
     return {"commit": git("rev-parse", "HEAD"), "dirty": bool(git("status", "--porcelain", "--untracked-files=no", "--", *run_paths))}
 
 
-def run_single(year: int, sim_name: str, defaults_only: bool, out_dir: Path) -> None:
-    """One simulation per process: 'baseline' or one reform."""
+SMOKE_DIR = ROOT / "data" / "microcosm" / "smoke"
+
+
+def subsample(dataset, households: int, seed: int = 0):
+    """The year's dataset cut to a random set of whole households, saved under
+    data/microcosm/smoke/, for a fast check of the output path (--sample)."""
+    from microdf import MicroDataFrame
+    from policyengine.tax_benefit_models.us.datasets import PolicyEngineUSDataset, USYearData
+
+    d = dataset.data
+    ids = pd.DataFrame(d.household)["household_id"].to_numpy()
+    keep = set(np.random.default_rng(seed).choice(ids, size=min(households, len(ids)), replace=False).tolist())
+    person = pd.DataFrame(d.person)
+    person = person[person["person_household_id"].isin(keep)]
+    frames = {"person": person}
+    for entity in ("household", "tax_unit", "spm_unit", "family", "marital_unit"):
+        frame = pd.DataFrame(getattr(d, entity))
+        frames[entity] = frame[frame[f"{entity}_id"].isin(set(person[f"person_{entity}_id"]))]
+    data = USYearData(
+        **{k: MicroDataFrame(v.reset_index(drop=True), weights=f"{k}_weight") for k, v in frames.items()}
+    )
+    sample = PolicyEngineUSDataset(
+        id=f"{dataset.id}-sample{households}",
+        name=f"{dataset.name} sample",
+        description=f"{households} households of {dataset.name}",
+        filepath=str(SMOKE_DIR / f"sample_{dataset.year}.h5"),
+        year=dataset.year,
+        data=data,
+        metadata=dict(dataset.metadata),
+    )
+    sample.save()
+    return sample
+
+
+def run_single(year: int, sim_name: str, defaults_only: bool, out_dir: Path, sample: int | None = None) -> None:
+    """One simulation per process: 'baseline' or one reform. With `sample`,
+    the same steps on that many households (a smoke test; out_dir must not be
+    outputs/)."""
+    if sample and out_dir.resolve() == (ROOT / "outputs").resolve():
+        raise SystemExit("--sample writes a smoke test; pass --out somewhere other than outputs/")
     path = out_dir / f"year_{year}" / f"{sim_name}{'.defaults' if defaults_only else ''}.json"
     if path.exists():
         print(f"{path} exists; skipping")
@@ -165,6 +204,8 @@ def run_single(year: int, sim_name: str, defaults_only: bool, out_dir: Path) -> 
     started = time.time()
     datasets = pe.us.ensure_datasets(years=[year], data_folder=str(ROOT / "data" / "microcosm"))
     dataset = next(iter(datasets.values()))
+    if sample:
+        dataset = subsample(dataset, sample)
     log("dataset ready")
     kwargs = {"dataset": dataset, "tax_benefit_model_version": pe.us.model}
     if not defaults_only:
@@ -177,21 +218,30 @@ def run_single(year: int, sim_name: str, defaults_only: bool, out_dir: Path) -> 
     sim_seconds = round(time.time() - t, 1)
     log(f"{sim_name} simulation done")
     names = DEFAULT_TOTALS if defaults_only else DOLLARS + PEOPLE
-    sums = {}
+    # Each total is computed on its own, so one failure after an hour's
+    # simulation keeps the others (written to <sim>.partial.json, which the
+    # runner's skip check ignores) and names the one that failed.
+    sums, errors = {}, {}
     for name in names:
-        agg = Aggregate(simulation=sim, variable=name, aggregate_type=AggregateType.SUM)
-        agg.run()
-        sums[name] = float(agg.result)
+        try:
+            agg = Aggregate(simulation=sim, variable=name, aggregate_type=AggregateType.SUM)
+            agg.run()
+            sums[name] = float(agg.result)
+        except Exception as exc:  # noqa: BLE001 - recorded and fails the process below
+            errors[name] = f"{type(exc).__name__}: {exc}"
     if not defaults_only:
-        agg = Aggregate(
-            simulation=sim,
-            variable=SUBSIDIZED["variable"],
-            aggregate_type=AggregateType.SUM,
-            filter_variable=SUBSIDIZED["filter_variable"],
-            filter_variable_geq=SUBSIDIZED["filter_variable_geq"],
-        )
-        agg.run()
-        sums[SUBSIDIZED["name"]] = float(agg.result)
+        try:
+            agg = Aggregate(
+                simulation=sim,
+                variable=SUBSIDIZED["variable"],
+                aggregate_type=AggregateType.SUM,
+                filter_variable=SUBSIDIZED["filter_variable"],
+                filter_variable_geq=SUBSIDIZED["filter_variable_geq"],
+            )
+            agg.run()
+            sums[SUBSIDIZED["name"]] = float(agg.result)
+        except Exception as exc:  # noqa: BLE001
+            errors[SUBSIDIZED["name"]] = f"{type(exc).__name__}: {exc}"
     year_files = sorted((ROOT / "data" / "microcosm").glob(f"*_year_{year}.h5"))
     result = {
         "year": year,
@@ -210,6 +260,11 @@ def run_single(year: int, sim_name: str, defaults_only: bool, out_dir: Path) -> 
         "peak_rss_gb": rss_gb(),
         "year_file_bytes": sum(f.stat().st_size for f in year_files),
     }
+    if sample:
+        result["sample_households"] = sample
+    if errors:
+        result["errors"] = errors
+        path = path.with_name(path.stem + ".partial.json")
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(result, indent=1))
@@ -221,7 +276,11 @@ def run_single(year: int, sim_name: str, defaults_only: bool, out_dir: Path) -> 
         result_bytes = Path(output_file).stat().st_size
         Path(output_file).unlink()
         print(f"removed output dataset {output_file} ({result_bytes} bytes)", flush=True)
+    if sample:
+        (SMOKE_DIR / f"sample_{year}.h5").unlink(missing_ok=True)
     print(json.dumps({k: result[k] for k in ("year", "simulation", "defaults_only", "timing_seconds", "peak_rss_gb", "year_file_bytes", "fingerprint")}, indent=1))
+    if errors:
+        raise SystemExit(f"{len(errors)} total(s) failed; partial totals in {path}: {errors}")
 
 
 def main() -> None:
@@ -238,12 +297,13 @@ def main() -> None:
     )
     parser.add_argument("--sim", help="run one simulation only: 'baseline' or a reform name")
     parser.add_argument("--defaults-only", action="store_true", help="with --sim: policyengine's default outputs only (memory measurement)")
+    parser.add_argument("--sample", type=int, help="with --sim: run on this many households (smoke test of the output path)")
     args = parser.parse_args()
     year = args.year
     if args.sim:
         if args.sim != "baseline" and args.sim not in REFORMS:
             raise SystemExit(f"unknown simulation {args.sim!r}")
-        run_single(year, args.sim, args.defaults_only, Path(args.out))
+        run_single(year, args.sim, args.defaults_only, Path(args.out), args.sample)
         return
     out_path = Path(args.out) / f"year_{year}.json"
     wanted = [name for name in args.reforms if year >= FIRST_YEAR[name]]

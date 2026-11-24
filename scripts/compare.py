@@ -194,6 +194,11 @@ LINES = {
 FINGERPRINT_KEYS = ("year_file_sha256", "household_weight_sum", "person_weight_sum")
 
 
+def same(a: float, b: float) -> bool:
+    """Equal up to floating-point summation order."""
+    return abs(a - b) <= 1e-9 * max(abs(a), abs(b), 1.0)
+
+
 def load_pe() -> dict[int, dict]:
     """Per year: baseline totals, reform totals, and the health flag.
 
@@ -208,8 +213,8 @@ def load_pe() -> dict[int, dict]:
             continue
         sims = {}
         for path in ydir.glob("*.json"):
-            if path.name.endswith(".defaults.json"):
-                continue  # memory measurements, default outputs only
+            if path.name.endswith((".defaults.json", ".partial.json")):
+                continue  # memory measurements (default outputs only) and failed runs
             run = json.loads(path.read_text())
             sims[run["simulation"]] = run
         if "baseline" not in sims:
@@ -223,6 +228,21 @@ def load_pe() -> dict[int, dict]:
             for key in ("versions", "bundle"):
                 if run[key] != ref[key]:
                     raise SystemExit(f"{ydir}/{name}: {key} differs from the baseline's; not comparable")
+            # Same code: a clean checkout of one commit for every simulation of the year.
+            repo = run.get("repo") or {}
+            if repo.get("dirty") is not False or repo.get("commit") != (ref.get("repo") or {}).get("commit"):
+                raise SystemExit(f"{ydir}/{name}: repo {repo} is not a clean run of the baseline's commit")
+            # Same draws: neither bill touches payroll tax, so a difference means
+            # the processes did not compute the same population.
+            if not same(run["totals"]["employee_payroll_tax"], ref["totals"]["employee_payroll_tax"]):
+                raise SystemExit(f"{ydir}/{name}: employee_payroll_tax differs from the baseline's; outputs not deterministic")
+        # The memory measurement ran the same baseline with default outputs only:
+        # every total the two share must match.
+        measured = ydir / "baseline.defaults.json"
+        if measured.exists():
+            for key, value in json.loads(measured.read_text())["totals"].items():
+                if not same(ref["totals"].get(key, float("nan")), value):
+                    raise SystemExit(f"{ydir}: baseline {key} differs from baseline.defaults.json; outputs not deterministic")
         runs[year] = {
             "baseline": ref["totals"],
             "reforms": {name: run["totals"] for name, run in sims.items() if name != "baseline"},

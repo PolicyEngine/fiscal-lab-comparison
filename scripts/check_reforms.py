@@ -52,6 +52,16 @@ check("4849 work requirement baseline on 2027", bool(base.gov.hhs.medicaid.eligi
 check("4849 refugees Medicaid-eligible 2027", "REFUGEE" in list(p.gov.hhs.medicaid.eligibility.eligible_immigration_statuses("2027-01-01")))
 check("4849 refugees PTC-eligible 2027", "REFUGEE" not in list(p.gov.aca.ineligible_immigration_statuses("2027-01-01")))
 check("4849 below-FPL exception on 2027", bool(p.gov.aca.below_fpl_immigration_exception_in_effect("2027-01-01")))
+equity_b = base.gov.hhs.medicaid.eligibility.long_term_care.home_equity
+equity_r = p.gov.hhs.medicaid.eligibility.long_term_care.home_equity
+check("4849 home equity limit 2027 unchanged", equity_r.limit("2027-01-01") == equity_b.limit("2027-01-01"), f"{equity_b.limit('2027-01-01'):.0f}")
+for year in (2028, 2036):
+    i = f"{year}-01-01"
+    check(
+        f"4849 home equity limit {year} = indexed limit",
+        equity_r.limit(i) == equity_b.agricultural_limit(i) and equity_b.limit(i) != equity_r.limit(i),
+        f"{equity_b.limit(i):.0f} -> {equity_r.limit(i):.0f}",
+    )
 
 # --- H.R. 1428 parameters ---------------------------------------------------
 r1428 = hr1428_poverty_line()
@@ -67,6 +77,12 @@ for instant in ("2030-01-01", "2030-10-01", "2035-10-01"):
     r = p.gov.usda.snap.income.deductions.standard.CONTIGUOUS_US.children["4"](instant)
     changed = instant >= "2030-10-01"
     check(f"1428 SNAP std deduction size 4 at {instant}", (r > b) if changed else (r == b), f"{b:.0f} -> {r:.0f}")
+for region in ("GU", "VI"):
+    for instant in ("2030-01-01", "2030-10-01"):
+        b = base.gov.usda.snap.income.deductions.standard.children[region].children["4"](instant)
+        r = p.gov.usda.snap.income.deductions.standard.children[region].children["4"](instant)
+        changed = instant >= "2030-10-01"
+        check(f"1428 SNAP std deduction {region} size 4 at {instant}", (r > b) if changed else (r == b), f"{b:.0f} -> {r:.0f}")
 
 # --- Households ---------------------------------------------------------------
 

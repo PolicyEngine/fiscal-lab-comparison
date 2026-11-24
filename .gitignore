@@ -6,3 +6,6 @@ data/
 logs/
 results/
 outputs-smoke/
+outputs-measure*/
+# Person-level values the baseline saves for its reforms (run_year.py denominator_file)
+*.npz

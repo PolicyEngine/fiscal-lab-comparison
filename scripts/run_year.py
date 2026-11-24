@@ -12,10 +12,12 @@ from __future__ import annotations
 
 import argparse
 import gc
+import hashlib
 import json
 import resource
 import sys
 import time
+import weakref
 
 import numpy as np
 import pandas as pd
@@ -32,7 +34,6 @@ from policyengine.tax_benefit_models.us.analysis import (  # noqa: E402
     calculate_budgetary_impact,
     configure_budgetary_impact_variables,
 )
-from policyengine_us import CountryTaxBenefitSystem  # noqa: E402
 
 from fiscal_lab_comparison.reforms import REFORMS  # noqa: E402
 
@@ -82,8 +83,67 @@ SUBSIDIZED = {
 }
 
 
+# A reform simulation builds a second, baseline-policy simulation (core's
+# "baseline" branch) for one formula: medicaid_slcsp_state_denominator reads
+# the baseline's state Medicaid enrollment to price the reform's enrollees
+# (policyengine_us/variables/gov/hhs/medicaid/costs/
+# medicaid_slcsp_state_denominator.py). Computing it there pulls Medicaid
+# eligibility and the federal income tax chain into memory a second time.
+# The baseline process computes the same variable with the same policy and
+# inputs, so it saves the values and each reform sets them as an input on
+# that branch, which then computes nothing. runs/memory-review in the
+# comparison notes has the code trace.
+DENOMINATOR = "medicaid_slcsp_state_denominator"
+
+
+def denominator_file(out_dir: Path, year: int) -> Path:
+    # Person ids and values: kept out of git (*.npz in .gitignore).
+    return out_dir / f"year_{year}" / f"baseline.{DENOMINATOR}.npz"
+
+
+def file_sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def inject_baseline_denominator(saved: pd.Series, record: dict) -> None:
+    """Set the baseline process's denominator as an input on the reform's
+    baseline branch as policyengine builds it, and record which variables the
+    branch is asked for (expected: the denominator alone)."""
+    from policyengine.tax_benefit_models.us.model import PolicyEngineUSLatest
+
+    original = PolicyEngineUSLatest._build_simulation_from_dataset
+
+    def build(self, microsim, dataset, system):
+        renames = original(self, microsim, dataset, system)
+        if microsim.branch_name == "baseline":
+            values = saved.reindex(microsim.populations["person"].ids).to_numpy()
+            if np.isnan(values).any():
+                raise SystemExit(f"baseline {DENOMINATOR} missing for {int(np.isnan(values).sum())} people")
+            microsim.set_input(DENOMINATOR, dataset.year, values)
+            record["persons"].append(len(values))
+            # Count on the class with an identity check, not on the instance: a
+            # branch cloned from this one would copy an instance attribute.
+            # A weak reference, so the count keeps nothing alive after run().
+            branch = weakref.ref(microsim)
+            cls = type(microsim)
+            calculate = cls.calculate
+
+            def counted(self, variable_name, *args, **kwargs):
+                if self is branch():
+                    record["requested"][variable_name] = record["requested"].get(variable_name, 0) + 1
+                return calculate(self, variable_name, *args, **kwargs)
+
+            cls.calculate = counted
+        return renames
+
+    PolicyEngineUSLatest._build_simulation_from_dataset = build
+
+
 def extra_variables() -> dict[str, list[str]]:
-    variables = CountryTaxBenefitSystem().variables
+    # The module's own system, not a second CountryTaxBenefitSystem().
+    from policyengine_us.system import system
+
+    variables = system.variables
     by_entity: dict[str, list[str]] = {}
     for name in DOLLARS + PEOPLE:
         by_entity.setdefault(variables[name].entity.key, []).append(name)
@@ -132,11 +192,9 @@ DEFAULT_TOTALS = [
 def fingerprint(simulation: Simulation, year_file: Path | None) -> dict:
     """What every simulation for a year must share for reform-minus-baseline
     sums from separate processes to be valid."""
-    import hashlib
-
     out = {"year_file_sha256": None, "household_weight_sum": None, "person_weight_sum": None}
     if year_file is not None and year_file.exists():
-        out["year_file_sha256"] = hashlib.sha256(year_file.read_bytes()).hexdigest()
+        out["year_file_sha256"] = file_sha256(year_file)
     try:
         data = simulation.output_dataset.data
         out["household_weight_sum"] = float(np.asarray(data.household["household_weight"], dtype=float).sum())
@@ -201,22 +259,55 @@ def run_single(year: int, sim_name: str, defaults_only: bool, out_dir: Path, sam
     if path.exists():
         print(f"{path} exists; skipping")
         return
+    denominator_path = denominator_file(out_dir, year)
+    if sim_name != "baseline" and not denominator_path.exists():
+        raise SystemExit(f"{denominator_path} missing: run this year's baseline into {out_dir} first")
     started = time.time()
     datasets = pe.us.ensure_datasets(years=[year], data_folder=str(ROOT / "data" / "microcosm"))
     dataset = next(iter(datasets.values()))
+    year_files = sorted((ROOT / "data" / "microcosm").glob(f"*_year_{year}.h5"))
+    year_sha = file_sha256(year_files[0]) if year_files else None
     if sample:
         dataset = subsample(dataset, sample)
     log("dataset ready")
     kwargs = {"dataset": dataset, "tax_benefit_model_version": pe.us.model}
     if not defaults_only:
         kwargs["extra_variables"] = extra_variables()
+        if sim_name == "baseline":
+            kwargs["extra_variables"].setdefault("person", []).append(DENOMINATOR)
+    injection = None
     if sim_name != "baseline":
         kwargs["policy"] = REFORMS[sim_name]()
+        # The reform dict holds plain values; free the parameter tree built to make it.
+        from fiscal_lab_comparison.reforms import _baseline_parameters
+
+        _baseline_parameters.cache_clear()
+        gc.collect()
+        with np.load(denominator_path) as saved:
+            if str(saved["year_file_sha256"]) != year_sha or int(saved["sample"]) != (sample or 0):
+                raise SystemExit(f"{denominator_path} comes from another year file or sample")
+            by_id = pd.Series(saved["value"], index=saved["person_id"])
+        injection = {"file": denominator_path.name, "persons": [], "requested": {}}
+        inject_baseline_denominator(by_id, injection)
     sim = Simulation(**kwargs)
     t = time.time()
     sim.ensure()
     sim_seconds = round(time.time() - t, 1)
     log(f"{sim_name} simulation done")
+    if injection is not None and len(injection["persons"]) != 1:
+        raise SystemExit(f"denominator injection ran {len(injection['persons'])} times, expected once")
+    denominator = None
+    if sim_name == "baseline" and not defaults_only:
+        person = pd.DataFrame(sim.output_dataset.data.person)
+        values = person[DENOMINATOR].to_numpy()
+        denominator_path.parent.mkdir(parents=True, exist_ok=True)
+        tmp_npz = denominator_path.with_name(denominator_path.name + ".tmp")
+        with open(tmp_npz, "wb") as f:
+            np.savez(f, person_id=person["person_id"].to_numpy(), value=values, year_file_sha256=year_sha, sample=sample or 0)
+        tmp_npz.replace(denominator_path)
+        # A state total repeated for each person: at most one value per state.
+        denominator = {"file": denominator_path.name, "persons": len(values), "distinct_values": int(np.unique(values).size)}
+        del person
     names = DEFAULT_TOTALS if defaults_only else DOLLARS + PEOPLE
     # Each total is computed on its own, so one failure after an hour's
     # simulation keeps the others (written to <sim>.partial.json, which the
@@ -242,7 +333,6 @@ def run_single(year: int, sim_name: str, defaults_only: bool, out_dir: Path, sam
             sums[SUBSIDIZED["name"]] = float(agg.result)
         except Exception as exc:  # noqa: BLE001
             errors[SUBSIDIZED["name"]] = f"{type(exc).__name__}: {exc}"
-    year_files = sorted((ROOT / "data" / "microcosm").glob(f"*_year_{year}.h5"))
     result = {
         "year": year,
         "simulation": sim_name,
@@ -262,6 +352,10 @@ def run_single(year: int, sim_name: str, defaults_only: bool, out_dir: Path, sam
     }
     if sample:
         result["sample_households"] = sample
+    if denominator is not None:
+        result["denominator_saved"] = denominator
+    if injection is not None:
+        result["denominator_injected"] = {"file": injection["file"], "persons": injection["persons"][0], "baseline_branch_requests": injection["requested"]}
     if errors:
         result["errors"] = errors
         path = path.with_name(path.stem + ".partial.json")

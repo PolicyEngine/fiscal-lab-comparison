@@ -40,8 +40,9 @@ FIRST_YEAR = {"hr4849_coverage": 2027, "hr1428_poverty_line": 2030}
 AUG_SEP_SCHOOL_DAY_SHARE = 1 / 6
 
 MEDICAID_PRICE = (
-    "PolicyEngine prices an enrollee at the state's 2023 total Medicaid spending divided by baseline "
-    "enrollment, with no growth after 2023 and no split by eligibility group"
+    "PolicyEngine shares each state's 2023 total Medicaid spending among enrollees by an age-rated "
+    "benchmark-premium index, over the baseline's index-weighted enrollment, so the average price is "
+    "spending divided by baseline enrollment, with no growth after 2023 and no split by eligibility group"
 )
 CHIP_TAKEUP = "PolicyEngine counts every CHIP-eligible person as enrolled"
 PTC_BASELINE = (
@@ -237,11 +238,16 @@ def load_pe() -> dict[int, dict]:
             if not same(run["totals"]["employee_payroll_tax"], ref["totals"]["employee_payroll_tax"]):
                 raise SystemExit(f"{ydir}/{name}: employee_payroll_tax differs from the baseline's; outputs not deterministic")
         # The memory measurement ran the same baseline with default outputs only:
-        # every total the two share must match.
+        # every total the two share must match (household_net_income is recorded
+        # only there).
         measured = ydir / "baseline.defaults.json"
         if measured.exists():
-            for key, value in json.loads(measured.read_text())["totals"].items():
-                if not same(ref["totals"].get(key, float("nan")), value):
+            defaults = json.loads(measured.read_text())["totals"]
+            shared = sorted(set(defaults) & set(ref["totals"]))
+            if not shared:
+                raise SystemExit(f"{ydir}: baseline.defaults.json shares no total with baseline.json")
+            for key in shared:
+                if not same(ref["totals"][key], defaults[key]):
                     raise SystemExit(f"{ydir}: baseline {key} differs from baseline.defaults.json; outputs not deterministic")
         runs[year] = {
             "baseline": ref["totals"],

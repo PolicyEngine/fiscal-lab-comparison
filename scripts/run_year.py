@@ -1,11 +1,16 @@
-"""Run the PolicyEngine baseline and each reform for one calendar year.
+"""Run the PolicyEngine baseline or one reform for one calendar year.
 
-Writes outputs/year_<YEAR>.json: budgetary impact (policyengine's
-federal/state/unattributed partition), and baseline and reform totals for
-the component variables compared with Fiscal Lab's lines.
+With --sim, writes <out>/year_<YEAR>/<simulation>.json: the totals of the
+variables compared with Fiscal Lab's lines and of policyengine's budgetary
+impact inputs, with versions, the repository commit and a fingerprint of the
+year's data. A baseline also saves the Medicaid denominator its reforms read
+(<out>/year_<YEAR>/baseline.medicaid_slcsp_state_denominator.npz). Run each
+year's baseline before its reforms, one simulation per process:
+    uv run python scripts/run_year.py 2030 --sim baseline
+    uv run python scripts/run_year.py 2030 --sim hr4849_coverage
 
-Run one year per process, under the heavy-run wrapper:
-    heavy_run.sh fiscal-lab-2030 uv run python scripts/run_year.py 2030
+Without --sim it runs every simulation for the year in one process and writes
+<out>/year_<YEAR>.json (the earlier layout, which compare.py does not read).
 """
 
 from __future__ import annotations
@@ -91,8 +96,8 @@ SUBSIDIZED = {
 # eligibility and the federal income tax chain into memory a second time.
 # The baseline process computes the same variable with the same policy and
 # inputs, so it saves the values and each reform sets them as an input on
-# that branch, which then computes nothing. runs/memory-review in the
-# comparison notes has the code trace.
+# that branch, which then computes nothing. docs/parity.md shows the totals
+# match the unmodified code bit for bit on 2030 samples.
 DENOMINATOR = "medicaid_slcsp_state_denominator"
 
 

@@ -1,0 +1,69 @@
+{
+ "year": 2032,
+ "simulation": "hr4849_coverage",
+ "defaults_only": false,
+ "versions": {
+  "policyengine": "6.20.3",
+  "policyengine-us": "2.2.2",
+  "policyengine-core": "3.34.10"
+ },
+ "dataset": {
+  "id": "7eceada7-f583-48a4-8e93-9ea320f24e89",
+  "year": 2032
+ },
+ "bundle": {
+  "default_dataset": "populace_us_2024",
+  "build_id": "populace-us-2024-spm-20260915"
+ },
+ "repo": {
+  "commit": "9f854e659ad8fe4f12bbd7d4cf65ecaecb12af41",
+  "dirty": false
+ },
+ "fingerprint": {
+  "year_file_sha256": "bb2022965335e57c467ecf81ebafeba0630caf8b63f6f8501218cdcef05bd5ec",
+  "household_weight_sum": 127643098.73549488,
+  "person_weight_sum": 354248028.91513205
+ },
+ "include_health_benefits_in_net_income": false,
+ "totals": {
+  "aca_ptc": 349621055365.3208,
+  "assigned_aca_ptc": 113182675274.10794,
+  "used_aca_ptc": 111319616966.48564,
+  "medicaid_cost": 899938738707.2244,
+  "medicaid_federal_cost": 601719008809.7556,
+  "medicaid_state_cost": 298219730111.27576,
+  "chip": 11953264716.334112,
+  "chip_federal_cost": 8445754132.183311,
+  "chip_state_cost": 3507510485.2473145,
+  "msp_federal_cost": 7518755937.373623,
+  "basic_health_program": 13914401529.79263,
+  "federal_benefit_cost": 617683518879.3125,
+  "state_benefit_cost": 306043628141.13135,
+  "snap": 100653116065.3945,
+  "school_meal_net_subsidy": 40660882273.95877,
+  "wic": 7314820194.113953,
+  "income_tax": 3575304708025.4097,
+  "state_income_tax": 799363512785.9475,
+  "employee_payroll_tax": 1109408561043.3071,
+  "household_tax": 5653864241664.098,
+  "household_benefits": 2854909968634.035,
+  "medicaid_enrolled": 62466150.94795348,
+  "chip_enrolled": 4437993.521148611,
+  "person_receives_aca": 18703746.183623396,
+  "basic_health_program_enrolled": 1210827.0424500871,
+  "person_receives_aca_with_credit": 18638123.41506871
+ },
+ "timing_seconds": {
+  "simulation": 3466.3,
+  "all": 3479.3
+ },
+ "peak_rss_gb": 23.38,
+ "year_file_bytes": 106383073,
+ "denominator_injected": {
+  "file": "baseline.medicaid_slcsp_state_denominator.npz",
+  "persons": 166321,
+  "baseline_branch_requests": {
+   "medicaid_slcsp_state_denominator": 1
+  }
+ }
+}

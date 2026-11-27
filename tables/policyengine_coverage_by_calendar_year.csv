@@ -1,0 +1,41 @@
+bill,coverage,policyengine_variables,calendar_year,policyengine_millions
+H.R. 4849,Medicaid and CHIP,medicaid_enrolled + chip_enrolled,2027,1.1087
+H.R. 4849,Medicaid and CHIP,medicaid_enrolled + chip_enrolled,2028,1.0859
+H.R. 4849,Medicaid and CHIP,medicaid_enrolled + chip_enrolled,2029,1.0788
+H.R. 4849,Medicaid and CHIP,medicaid_enrolled + chip_enrolled,2030,1.0743
+H.R. 4849,Medicaid and CHIP,medicaid_enrolled + chip_enrolled,2031,1.073
+H.R. 4849,Medicaid and CHIP,medicaid_enrolled + chip_enrolled,2032,1.0765
+H.R. 4849,Medicaid and CHIP,medicaid_enrolled + chip_enrolled,2033,1.0358
+H.R. 4849,Medicaid and CHIP,medicaid_enrolled + chip_enrolled,2034,1.0502
+H.R. 4849,Medicaid and CHIP,medicaid_enrolled + chip_enrolled,2035,1.0528
+H.R. 4849,Medicaid and CHIP,medicaid_enrolled + chip_enrolled,2036,1.0502
+H.R. 4849,"Marketplace, subsidized",person_receives_aca_with_credit,2027,7.0777
+H.R. 4849,"Marketplace, subsidized",person_receives_aca_with_credit,2028,7.3964
+H.R. 4849,"Marketplace, subsidized",person_receives_aca_with_credit,2029,7.8914
+H.R. 4849,"Marketplace, subsidized",person_receives_aca_with_credit,2030,8.2398
+H.R. 4849,"Marketplace, subsidized",person_receives_aca_with_credit,2031,8.4227
+H.R. 4849,"Marketplace, subsidized",person_receives_aca_with_credit,2032,8.8179
+H.R. 4849,"Marketplace, subsidized",person_receives_aca_with_credit,2033,9.15
+H.R. 4849,"Marketplace, subsidized",person_receives_aca_with_credit,2034,9.4955
+H.R. 4849,"Marketplace, subsidized",person_receives_aca_with_credit,2035,9.7752
+H.R. 4849,"Marketplace, subsidized",person_receives_aca_with_credit,2036,9.8809
+H.R. 1428,Medicaid and CHIP,medicaid_enrolled + chip_enrolled,2027,0.0
+H.R. 1428,Medicaid and CHIP,medicaid_enrolled + chip_enrolled,2028,0.0
+H.R. 1428,Medicaid and CHIP,medicaid_enrolled + chip_enrolled,2029,0.0
+H.R. 1428,Medicaid and CHIP,medicaid_enrolled + chip_enrolled,2030,44.193
+H.R. 1428,Medicaid and CHIP,medicaid_enrolled + chip_enrolled,2031,44.5008
+H.R. 1428,Medicaid and CHIP,medicaid_enrolled + chip_enrolled,2032,44.5461
+H.R. 1428,Medicaid and CHIP,medicaid_enrolled + chip_enrolled,2033,45.0868
+H.R. 1428,Medicaid and CHIP,medicaid_enrolled + chip_enrolled,2034,45.1684
+H.R. 1428,Medicaid and CHIP,medicaid_enrolled + chip_enrolled,2035,45.3608
+H.R. 1428,Medicaid and CHIP,medicaid_enrolled + chip_enrolled,2036,45.1774
+H.R. 1428,"Marketplace, subsidized",person_receives_aca_with_credit,2027,0.0
+H.R. 1428,"Marketplace, subsidized",person_receives_aca_with_credit,2028,0.0
+H.R. 1428,"Marketplace, subsidized",person_receives_aca_with_credit,2029,0.0
+H.R. 1428,"Marketplace, subsidized",person_receives_aca_with_credit,2030,-5.0091
+H.R. 1428,"Marketplace, subsidized",person_receives_aca_with_credit,2031,0.9219
+H.R. 1428,"Marketplace, subsidized",person_receives_aca_with_credit,2032,1.3276
+H.R. 1428,"Marketplace, subsidized",person_receives_aca_with_credit,2033,1.8063
+H.R. 1428,"Marketplace, subsidized",person_receives_aca_with_credit,2034,2.1043
+H.R. 1428,"Marketplace, subsidized",person_receives_aca_with_credit,2035,2.4343
+H.R. 1428,"Marketplace, subsidized",person_receives_aca_with_credit,2036,2.5078

@@ -1,0 +1,91 @@
+bill,line,policyengine_variables,fiscal_year_rule,fiscal_year,policyengine_cost_bn
+H.R. 4849,Federal Medicaid and CHIP spending,medicaid_federal_cost + chip_federal_cost,coverage,2027,12.297
+H.R. 4849,Federal Medicaid and CHIP spending,medicaid_federal_cost + chip_federal_cost,coverage,2028,16.482
+H.R. 4849,Federal Medicaid and CHIP spending,medicaid_federal_cost + chip_federal_cost,coverage,2029,16.832
+H.R. 4849,Federal Medicaid and CHIP spending,medicaid_federal_cost + chip_federal_cost,coverage,2030,17.18
+H.R. 4849,Federal Medicaid and CHIP spending,medicaid_federal_cost + chip_federal_cost,coverage,2031,17.52
+H.R. 4849,Federal Medicaid and CHIP spending,medicaid_federal_cost + chip_federal_cost,coverage,2032,17.848
+H.R. 4849,Federal Medicaid and CHIP spending,medicaid_federal_cost + chip_federal_cost,coverage,2033,17.996
+H.R. 4849,Federal Medicaid and CHIP spending,medicaid_federal_cost + chip_federal_cost,coverage,2034,18.417
+H.R. 4849,Federal Medicaid and CHIP spending,medicaid_federal_cost + chip_federal_cost,coverage,2035,18.936
+H.R. 4849,Federal Medicaid and CHIP spending,medicaid_federal_cost + chip_federal_cost,coverage,2036,19.231
+H.R. 4849,Premium tax credits,used_aca_ptc,coverage,2027,30.296
+H.R. 4849,Premium tax credits,used_aca_ptc,coverage,2028,42.575
+H.R. 4849,Premium tax credits,used_aca_ptc,coverage,2029,46.108
+H.R. 4849,Premium tax credits,used_aca_ptc,coverage,2030,49.369
+H.R. 4849,Premium tax credits,used_aca_ptc,coverage,2031,52.26
+H.R. 4849,Premium tax credits,used_aca_ptc,coverage,2032,55.773
+H.R. 4849,Premium tax credits,used_aca_ptc,coverage,2033,59.414
+H.R. 4849,Premium tax credits,used_aca_ptc,coverage,2034,63.179
+H.R. 4849,Premium tax credits,used_aca_ptc,coverage,2035,66.932
+H.R. 4849,Premium tax credits,used_aca_ptc,coverage,2036,70.448
+H.R. 4849,Basic Health Program,basic_health_program,coverage,2027,0.988
+H.R. 4849,Basic Health Program,basic_health_program,coverage,2028,1.346
+H.R. 4849,Basic Health Program,basic_health_program,coverage,2029,1.441
+H.R. 4849,Basic Health Program,basic_health_program,coverage,2030,1.481
+H.R. 4849,Basic Health Program,basic_health_program,coverage,2031,1.537
+H.R. 4849,Basic Health Program,basic_health_program,coverage,2032,1.566
+H.R. 4849,Basic Health Program,basic_health_program,coverage,2033,1.592
+H.R. 4849,Basic Health Program,basic_health_program,coverage,2034,1.586
+H.R. 4849,Basic Health Program,basic_health_program,coverage,2035,1.732
+H.R. 4849,Basic Health Program,basic_health_program,coverage,2036,1.787
+H.R. 1428,Federal Medicaid and CHIP spending,medicaid_federal_cost + chip_federal_cost,coverage,2027,0.0
+H.R. 1428,Federal Medicaid and CHIP spending,medicaid_federal_cost + chip_federal_cost,coverage,2028,0.0
+H.R. 1428,Federal Medicaid and CHIP spending,medicaid_federal_cost + chip_federal_cost,coverage,2029,0.0
+H.R. 1428,Federal Medicaid and CHIP spending,medicaid_federal_cost + chip_federal_cost,coverage,2030,379.315
+H.R. 1428,Federal Medicaid and CHIP spending,medicaid_federal_cost + chip_federal_cost,coverage,2031,512.886
+H.R. 1428,Federal Medicaid and CHIP spending,medicaid_federal_cost + chip_federal_cost,coverage,2032,521.32
+H.R. 1428,Federal Medicaid and CHIP spending,medicaid_federal_cost + chip_federal_cost,coverage,2033,539.264
+H.R. 1428,Federal Medicaid and CHIP spending,medicaid_federal_cost + chip_federal_cost,coverage,2034,552.524
+H.R. 1428,Federal Medicaid and CHIP spending,medicaid_federal_cost + chip_federal_cost,coverage,2035,567.45
+H.R. 1428,Federal Medicaid and CHIP spending,medicaid_federal_cost + chip_federal_cost,coverage,2036,572.553
+H.R. 1428,Premium tax credits,used_aca_ptc,coverage,2027,0.0
+H.R. 1428,Premium tax credits,used_aca_ptc,coverage,2028,0.0
+H.R. 1428,Premium tax credits,used_aca_ptc,coverage,2029,0.0
+H.R. 1428,Premium tax credits,used_aca_ptc,coverage,2030,-16.695
+H.R. 1428,Premium tax credits,used_aca_ptc,coverage,2031,-0.645
+H.R. 1428,Premium tax credits,used_aca_ptc,coverage,2032,8.183
+H.R. 1428,Premium tax credits,used_aca_ptc,coverage,2033,10.507
+H.R. 1428,Premium tax credits,used_aca_ptc,coverage,2034,12.425
+H.R. 1428,Premium tax credits,used_aca_ptc,coverage,2035,14.547
+H.R. 1428,Premium tax credits,used_aca_ptc,coverage,2036,15.766
+H.R. 1428,Basic Health Program,basic_health_program,coverage,2027,0.0
+H.R. 1428,Basic Health Program,basic_health_program,coverage,2028,0.0
+H.R. 1428,Basic Health Program,basic_health_program,coverage,2029,0.0
+H.R. 1428,Basic Health Program,basic_health_program,coverage,2030,-5.433
+H.R. 1428,Basic Health Program,basic_health_program,coverage,2031,-6.112
+H.R. 1428,Basic Health Program,basic_health_program,coverage,2032,-5.93
+H.R. 1428,Basic Health Program,basic_health_program,coverage,2033,-6.496
+H.R. 1428,Basic Health Program,basic_health_program,coverage,2034,-6.681
+H.R. 1428,Basic Health Program,basic_health_program,coverage,2035,-8.674
+H.R. 1428,Basic Health Program,basic_health_program,coverage,2036,-9.018
+H.R. 1428,Medicare Savings Programs (federal Medicaid share),msp_federal_cost,coverage,2027,0.0
+H.R. 1428,Medicare Savings Programs (federal Medicaid share),msp_federal_cost,coverage,2028,0.0
+H.R. 1428,Medicare Savings Programs (federal Medicaid share),msp_federal_cost,coverage,2029,0.0
+H.R. 1428,Medicare Savings Programs (federal Medicaid share),msp_federal_cost,coverage,2030,7.978
+H.R. 1428,Medicare Savings Programs (federal Medicaid share),msp_federal_cost,coverage,2031,10.489
+H.R. 1428,Medicare Savings Programs (federal Medicaid share),msp_federal_cost,coverage,2032,10.793
+H.R. 1428,Medicare Savings Programs (federal Medicaid share),msp_federal_cost,coverage,2033,10.333
+H.R. 1428,Medicare Savings Programs (federal Medicaid share),msp_federal_cost,coverage,2034,9.714
+H.R. 1428,Medicare Savings Programs (federal Medicaid share),msp_federal_cost,coverage,2035,9.333
+H.R. 1428,Medicare Savings Programs (federal Medicaid share),msp_federal_cost,coverage,2036,8.887
+H.R. 1428,SNAP,snap,october,2027,0.0
+H.R. 1428,SNAP,snap,october,2028,0.0
+H.R. 1428,SNAP,snap,october,2029,0.0
+H.R. 1428,SNAP,snap,october,2030,0.0
+H.R. 1428,SNAP,snap,october,2031,15.691
+H.R. 1428,SNAP,snap,october,2032,16.031
+H.R. 1428,SNAP,snap,october,2033,16.32
+H.R. 1428,SNAP,snap,october,2034,16.446
+H.R. 1428,SNAP,snap,october,2035,16.731
+H.R. 1428,SNAP,snap,october,2036,17.065
+H.R. 1428,School meals,school_meal_net_subsidy,school_year,2027,0.0
+H.R. 1428,School meals,school_meal_net_subsidy,school_year,2028,0.0
+H.R. 1428,School meals,school_meal_net_subsidy,school_year,2029,0.0
+H.R. 1428,School meals,school_meal_net_subsidy,school_year,2030,2.184
+H.R. 1428,School meals,school_meal_net_subsidy,school_year,2031,13.181
+H.R. 1428,School meals,school_meal_net_subsidy,school_year,2032,13.595
+H.R. 1428,School meals,school_meal_net_subsidy,school_year,2033,13.843
+H.R. 1428,School meals,school_meal_net_subsidy,school_year,2034,14.013
+H.R. 1428,School meals,school_meal_net_subsidy,school_year,2035,14.194
+H.R. 1428,School meals,school_meal_net_subsidy,school_year,2036,14.415

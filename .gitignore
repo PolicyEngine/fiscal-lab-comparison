@@ -3,3 +3,19 @@ __pycache__/
 data/
 *.h5
 .DS_Store
+logs/
+results/
+outputs-smoke/
+outputs-measure*/
+# Person-level values the baseline saves for its reforms (run_year.py denominator_file)
+*.npz
+*.npz.tmp
+# Failed runs and half-written outputs (run_year.py)
+*.partial.json
+*.json.tmp
+# Fresh reproduction folders (README Reproduce)
+outputs-new/
+results-new/
+tables-new/
+# Memory measurement with default outputs only; it records no commit
+*.defaults.json

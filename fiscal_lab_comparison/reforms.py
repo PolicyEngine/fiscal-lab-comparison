@@ -4,8 +4,8 @@ Each function returns a reform dict in the ``{parameter: {"start.stop": value}}`
 shape that ``policyengine`` accepts for ``Simulation(policy=...)`` and
 ``calculate_household(reform=...)``.
 
-Only provisions PolicyEngine can express as parameter changes are encoded.
-The README lists what each reform leaves out.
+Each reform encodes the bill's provisions that policyengine-us 2.2.2
+represents as parameters; the README lists what each leaves out.
 """
 
 from __future__ import annotations
@@ -49,19 +49,44 @@ PRE_OBBBA_MEDICAID_STATUSES = [
 PRE_OBBBA_PTC_INELIGIBLE_STATUSES = ["DACA", "UNDOCUMENTED"]
 
 HR4849_START = "2027-01-01"
+LAST_YEAR = 2036
+
+
+@lru_cache(maxsize=1)
+def _baseline_parameters():
+    from policyengine_us import CountryTaxBenefitSystem
+
+    return CountryTaxBenefitSystem().parameters
+
+
+
+HOME_EQUITY_FIRST_YEAR = 2028  # OBBBA Sec. 71108's flat $1,000,000 limit starts here
 
 
 def hr4849_coverage() -> dict:
     """Sec. 3 (enhanced PTC made permanent) and the Sec. 2 repeals of OBBBA
-    coverage rules that policyengine-us encodes: the Medicaid work requirement
-    (Sec. 71119), the Medicaid immigrant limits (Sec. 71109) and the PTC
-    immigrant limits (Secs. 71301 and 71302).
+    rules that policyengine-us 2.2.2 represents as parameters: the Medicaid
+    work requirement (Sec. 71119), the Medicaid immigrant limits (Sec. 71109),
+    the PTC immigrant limits (Secs. 71301 and 71302) and the long-term care
+    home equity limit (Sec. 71108). policyengine-us does not represent the CHIP
+    immigrant limit of Sec. 71109(b), the six-month redeterminations or the
+    other Sec. 2 repeals as parameters, so they are not encoded.
 
-    Fiscal Lab's coverage model starts the coverage effects in calendar 2027
-    (its fiscal 2027 lines are three quarters of a full year), so every change
-    here starts on 2027-01-01.
+    The bill's own effective dates are earlier for some provisions. Fiscal
+    Lab's coverage model starts the coverage effects in calendar 2027 (its
+    fiscal 2027 lines are three quarters of a full year), so every change here
+    starts on 2027-01-01, except the home equity limit, which OBBBA changes
+    from 2028.
     """
     s = HR4849_START
+    p = _baseline_parameters()
+    equity = p.gov.hhs.medicaid.eligibility.long_term_care.home_equity
+    # Before OBBBA the non-agricultural limit tracked the indexed maximum that
+    # policyengine-us still carries as the agricultural limit (CPI-U uprated).
+    home_equity = {}
+    for year in range(HOME_EQUITY_FIRST_YEAR, LAST_YEAR + 1):
+        stop = OPEN_END if year == LAST_YEAR else f"{year}-12-31"
+        home_equity[f"{year}-01-01.{stop}"] = float(equity.agricultural_limit(f"{year}-01-01"))
     return {
         "gov.aca.required_contribution_percentage.threshold": _open(
             s, ENHANCED_PTC_THRESHOLD
@@ -80,6 +105,7 @@ def hr4849_coverage() -> dict:
             s, PRE_OBBBA_PTC_INELIGIBLE_STATUSES
         ),
         "gov.aca.below_fpl_immigration_exception_in_effect": _open(s, True),
+        "gov.hhs.medicaid.eligibility.long_term_care.home_equity.limit": home_equity,
     }
 
 
@@ -102,14 +128,13 @@ HR1428_FPG_FIRST_YEAR = 2030
 # at 8.31 percent of the household's own line".
 SNAP_STD_DEDUCTION_SHARE = 0.0831
 SNAP_STD_FIRST_FY_START = "2030-10-01"  # fiscal 2031
-LAST_YEAR = 2036
-
-
-@lru_cache(maxsize=1)
-def _baseline_parameters():
-    from policyengine_us import CountryTaxBenefitSystem
-
-    return CountryTaxBenefitSystem().parameters
+# Guam and the Virgin Islands have their own standard deductions in
+# policyengine-us, and fpg.yaml stores no guideline for them. By 7 U.S.C.
+# 2014(c)(1) and (e)(1), Guam's income standard is twice the 48-state line and
+# the Virgin Islands' is the 48-state line, so both deductions follow the
+# 48-state guideline. Microcosm has no territory households, so this changes
+# no number here; it keeps the encoding complete.
+SNAP_TERRITORY_MULTIPLE = {"GU": 2.0, "VI": 1.0}
 
 
 def hr1428_poverty_line(factor: float = FPG_FACTOR) -> dict:
@@ -144,6 +169,20 @@ def hr1428_poverty_line(factor: float = FPG_FACTOR) -> dict:
                 ) * (size - 1)
                 new_monthly_line = factor * annual_fpg / 12
                 value = max(float(node(instant)), SNAP_STD_DEDUCTION_SHARE * new_monthly_line)
+                stop = OPEN_END if fy_start_year == LAST_YEAR else f"{fy_start_year + 1}-09-30"
+                periods[f"{instant}.{stop}"] = value
+            reform[f"gov.usda.snap.income.deductions.standard.{region}.{size}"] = periods
+    fpg = p.gov.hhs.fpg
+    for region, multiple in SNAP_TERRITORY_MULTIPLE.items():
+        for size in range(1, 7):
+            node = std.children[region].children[str(size)]
+            periods = {}
+            for fy_start_year in range(first_fy, LAST_YEAR + 1):
+                instant = f"{fy_start_year}-10-01"
+                annual_48 = float(fpg.first_person.CONTIGUOUS_US(instant)) + float(
+                    fpg.additional_person.CONTIGUOUS_US(instant)
+                ) * (size - 1)
+                value = max(float(node(instant)), SNAP_STD_DEDUCTION_SHARE * multiple * factor * annual_48 / 12)
                 stop = OPEN_END if fy_start_year == LAST_YEAR else f"{fy_start_year + 1}-09-30"
                 periods[f"{instant}.{stop}"] = value
             reform[f"gov.usda.snap.income.deductions.standard.{region}.{size}"] = periods

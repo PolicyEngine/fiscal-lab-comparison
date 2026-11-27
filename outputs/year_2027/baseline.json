@@ -1,0 +1,67 @@
+{
+ "year": 2027,
+ "simulation": "baseline",
+ "defaults_only": false,
+ "versions": {
+  "policyengine": "6.20.3",
+  "policyengine-us": "2.2.2",
+  "policyengine-core": "3.34.10"
+ },
+ "dataset": {
+  "id": "populace_us_2024_year_2027",
+  "year": 2027
+ },
+ "bundle": {
+  "default_dataset": "populace_us_2024",
+  "build_id": "populace-us-2024-spm-20260915"
+ },
+ "repo": {
+  "commit": "9f854e659ad8fe4f12bbd7d4cf65ecaecb12af41",
+  "dirty": false
+ },
+ "fingerprint": {
+  "year_file_sha256": "fa16f096dd847468966acdc128c4b4922a5fae9463dd990c799160999aea0547",
+  "household_weight_sum": 125264043.16365257,
+  "person_weight_sum": 347645433.4287665
+ },
+ "include_health_benefits_in_net_income": false,
+ "totals": {
+  "aca_ptc": 157603617965.647,
+  "assigned_aca_ptc": 47842553881.2002,
+  "used_aca_ptc": 47782949900.01047,
+  "medicaid_cost": 880018887654.5588,
+  "medicaid_federal_cost": 586812370372.1519,
+  "medicaid_state_cost": 293206517585.385,
+  "chip": 12527899044.2708,
+  "chip_federal_cost": 8805928827.588192,
+  "chip_state_cost": 3721970121.2594137,
+  "msp_federal_cost": 8183118121.023962,
+  "basic_health_program": 9386553125.489853,
+  "federal_benefit_cost": 603801417320.764,
+  "state_benefit_cost": 301492121068.94403,
+  "snap": 100857482498.84555,
+  "school_meal_net_subsidy": 37195740408.15979,
+  "wic": 6857152352.149233,
+  "income_tax": 2740916566102.0103,
+  "state_income_tax": 632867282380.303,
+  "employee_payroll_tax": 894650869753.8258,
+  "household_tax": 4403898045634.495,
+  "household_benefits": 2219460128296.3193,
+  "medicaid_enrolled": 66538324.78434999,
+  "chip_enrolled": 4267602.860777095,
+  "person_receives_aca": 10899400.193752274,
+  "basic_health_program_enrolled": 1123625.3773411838,
+  "person_receives_aca_with_credit": 10856217.161373388
+ },
+ "timing_seconds": {
+  "simulation": 377.6,
+  "all": 385.4
+ },
+ "peak_rss_gb": 10.91,
+ "year_file_bytes": 106383073,
+ "denominator_saved": {
+  "file": "baseline.medicaid_slcsp_state_denominator.npz",
+  "persons": 166321,
+  "distinct_values": 51
+ }
+}
